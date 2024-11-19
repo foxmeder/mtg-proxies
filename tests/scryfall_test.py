@@ -37,3 +37,27 @@ def test_canonic_card_name(name: str, expected_id: str):
     card = scryfall.get_card(name)
 
     assert card["id"] == expected_id
+
+
+@pytest.mark.parametrize(
+    "name,set,collector_number,lang,expected",
+    [
+        ("Korvold, Fae-Cursed King", "", "", "zhs", {"lang": "zhs", "id": "9eb6ec66-d467-458f-a5b8-0c7aa426ee52"}),
+        ("Brave-Kin Duo", "", "", "zhs", {"lang": "en", "id": "b8dd4693-424d-4d6e-86cf-24401a23d6b1"}),
+        (
+            "Liliana, Dreadhorde General",
+            "WAR",
+            "",
+            "zhs",
+            {"lang": "zhs", "id": "05480a5a-3f2c-4420-9f8b-718efa532fa7"},
+        ),
+    ],
+)
+def test_get_cards_lang(name, set, collector_number, lang: str, expected):
+    import scryfall
+
+    scryfall.set_cache_path("./.cache")
+    scryfall.set_prefer_lang(lang)
+    cards = scryfall.get_cards(name=name, set=set, collector_number=collector_number)
+    assert cards[0]["lang"] == expected["lang"]
+    assert cards[0]["id"] == expected["id"]

@@ -8,11 +8,11 @@ Create a high quality printable PDF from your decklist or a list of cards you wa
 
 ## Features
 
-- **High resolution prints**  
+- **High resolution prints**
   In contrast to online tools that provide this service (e.g. [MTG Press](http://www.mtgpress.net/)), this project creates the PDF file locally.
   This allows to use highest resolution Scryfall scans to create a large, high-dpi PDF file without regard for bandwidth limitations. For example, the generated PDF for a complete Commander decklist has a size of about 140MB.
 
-- **Up-to-date card scans**  
+- **Up-to-date card scans**
   By directly utilizing the Scryfall API, all the latest sets are automatically availble as soon as they're available on Scryfall (which is usually incredibly fast). To not overrun Scryfall with requests, this project makes use of [Scryfall bulk data](https://scryfall.com/docs/api/bulk-data) to reduce API calls as much as possible. As requested by Scryfall, a small delay of 100ms is added between requests. However, as most work is done with a local copy of the bulk data, this is hardly noticeable.
 
 - **Support for both text and Arena format decklists**
@@ -24,11 +24,11 @@ Create a high quality printable PDF from your decklist or a list of cards you wa
   This is especially when you are making quick additions to a decklist and don't want to search for set and collector numbers.
   The `convert.py` tool can be used to convert decklists between the two formats.
 
-- **Sanity checks and recommender engine**  
+- **Sanity checks and recommender engine**
   `mtg-proxies` warns you if you attempt to print a low-resolution scan and is able to offer alternatives.
   The `convert.py` tool can automatically selects the best print for each card in a decklist with high accuracy, eliminating the need to manually select good prints.
 
-- **Token support**  
+- **Token support**
   The `tokens.py` tool appends the tokens created by the cards in a decklist to it, so you don't miss one accidentally. Caveat: This only works when Scryfall has the data on associated tokens. This is the case for cards printed or reprinted since Tenth Edition.
 
 - **ManaStack and Archidekt integration**
@@ -89,6 +89,7 @@ Examples:
 ```bash
 python print.py examples/decklist.txt decklist_fronts.pdf --face front
 python print.py examples/decklist.txt decklist_backs.pdf --face back
+python print.py examples/decklist.txt decklist_zhs.pdf --local_scan_path '/mnt/nasz/magic_cn/cards,/mnt/nasz/forge_cn1/Forge/Cache/pics/cards' --border_crop 0 --cache_path './.cache' --lang zhs
 ```
 
 ## Updating
@@ -122,6 +123,9 @@ optional arguments:
                         add crop marks (default: True)
   --faces {all,front,back}
                         which faces to print (default: all)
+  --local_scan_path     path to local scan cache
+  --lang                prefer this language
+  --cache_path          path to cache directory
 ```
 
 ### convert

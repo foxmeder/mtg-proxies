@@ -10,6 +10,8 @@ from scryfall.scryfall import (
     oracle_ids_by_name,
     recommend_print,
     search,
+    set_cache_path,
+    set_prefer_lang,
 )
 
 __all__ = [
@@ -24,4 +26,6 @@ __all__ = [
     "cards_by_oracle_id",
     "oracle_ids_by_name",
     "get_price",
+    "set_prefer_lang",
+    "set_cache_path",
 ]

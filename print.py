@@ -2,6 +2,8 @@ import argparse
 
 import numpy as np
 
+import localfile
+import scryfall
 from mtgproxies import fetch_scans_scryfall, print_cards_fpdf, print_cards_matplotlib
 from mtgproxies.cli import parse_decklist_spec
 
@@ -60,7 +62,25 @@ if __name__ == "__main__":
         choices=["all", "front", "back"],
         default="all",
     )
+    parser.add_argument("--local_scan_path", type=str, help="path to local scan cache", default=None)
+    parser.add_argument("--lang", type=str, help="prefer this language", default=None)
+    parser.add_argument("--cache_path", type=str, help="path to cache directory", default=None)
     args = parser.parse_args()
+
+    # Set cache path
+    if args.cache_path is not None:
+        print("Using cache path:", args.cache_path)
+        scryfall.set_cache_path(args.cache_path)
+
+    # Set local scan path
+    if args.local_scan_path is not None:
+        print("Using local scan path:", args.local_scan_path)
+        localfile.set_local_scan_path(args.local_scan_path)
+
+    # Set preferred language
+    if args.lang is not None:
+        print("Preferring language:", args.lang)
+        scryfall.set_prefer_lang(args.lang)
 
     # Parse decklist
     decklist = parse_decklist_spec(args.decklist)

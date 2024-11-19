@@ -3,11 +3,13 @@
 See:
     https://scryfall.com/docs/api
 """
+
 from __future__ import annotations
 
 import json
 import threading
 from collections import defaultdict
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from tempfile import gettempdir
@@ -16,12 +18,49 @@ import numpy as np
 import requests
 from tqdm import tqdm
 
+from scryfall.db import ScryfallDb
 from scryfall.rate_limit import RateLimiter
 
 cache = Path(gettempdir()) / "scryfall_cache"
 cache.mkdir(parents=True, exist_ok=True)  # Create cache folder
 scryfall_rate_limiter = RateLimiter(delay=0.1)
 _download_lock = threading.Lock()
+
+prefer_lang = "en"
+# TODO: Add support for multiple languages
+scryfall_db = None
+search_mode = "json"
+
+
+def set_prefer_lang(lang: str) -> None:
+    """Set the preferred language for card names.
+    Args:
+        lang: Language code, e.g. "en" or "fr"
+    """
+    global prefer_lang, search_mode, scryfall_db
+    if lang == "":
+        return
+    prefer_lang = lang
+    if lang != "en":
+        search_mode = "db"
+        if scryfall_db is None:
+            db_file = cache / "scryfall.db"
+            print(f"Using Scryfall DB {db_file}")
+            scryfall_db = ScryfallDb(db_file)
+
+
+def set_cache_path(path: str):
+    """Set the path to the cache folder.
+    Defaults to `~/.cache/scryfall_cache`.
+    Args:
+        path: Path to cache folder
+    """
+
+    if path == "":
+        return
+    global cache
+    cache = Path(path) / "scryfall_cache"
+    cache.mkdir(parents=True, exist_ok=True)
 
 
 def get_image(image_uri: str, silent: bool = False) -> str:
@@ -62,13 +101,16 @@ def download(url: str, dst, chunk_size: int = 1024 * 4, silent: bool = False):
     with requests.get(url, stream=True) as req:
         req.raise_for_status()
         file_size = int(req.headers["Content-Length"]) if "Content-Length" in req.headers else None
-        with open(dst, "xb") as f, tqdm(
-            total=file_size,
-            unit="B",
-            unit_scale=True,
-            desc=url.split("/")[-1],
-            disable=silent,
-        ) as pbar:
+        with (
+            open(dst, "xb") as f,
+            tqdm(
+                total=file_size,
+                unit="B",
+                unit_scale=True,
+                desc=url.split("/")[-1],
+                disable=silent,
+            ) as pbar,
+        ):
             for chunk in req.iter_content(chunk_size=chunk_size):
                 if chunk:
                     f.write(chunk)
@@ -160,6 +202,12 @@ def get_cards(database: str = "default_cards", **kwargs):
     Returns:
         List of all matching cards
     """
+
+    # support for multiple languages cards search using sqlite3
+    global scryfall_db, prefer_lang, search_mode
+    if search_mode == "db" and "name" in kwargs:
+        return scryfall_db.get_cards(lang=prefer_lang, **kwargs)
+
     cards = _get_database(database)
 
     for key, value in kwargs.items():
@@ -189,6 +237,7 @@ def get_faces(card):
 
 
 def recommend_print(current=None, card_name: str | None = None, oracle_id: str | None = None, mode="best"):
+    global prefer_lang, search_mode
     if current is not None and oracle_id is None:  # Use oracle id of current
         if current.get("layout") == "reversible_card":
             # Reversible cards have the same oracle id for both faces
@@ -197,11 +246,15 @@ def recommend_print(current=None, card_name: str | None = None, oracle_id: str |
             oracle_id = current["oracle_id"]
 
     if oracle_id is not None:
-        alternatives = cards_by_oracle_id()[oracle_id]
+        if search_mode == "db":
+            alternatives = scryfall_db.cards_by_oracle_id(oracle_id, prefer_lang)
+        else:
+            alternatives = cards_by_oracle_id()[oracle_id]
     else:
         alternatives = get_cards(name=card_name)
 
     def score(card: dict):
+        global prefer_lang
         points = 0
         if card["set"] != "mb1" and card["border_color"] != "gold":
             points += 1
@@ -217,15 +270,23 @@ def recommend_print(current=None, card_name: str | None = None, oracle_id: str |
             points += 16
         if card["highres_image"]:
             points += 32
-        if card["lang"] == "en":
+        if card["lang"] == prefer_lang:
             points += 64
+        # check release date for zhs, if it is after 2024-08-01 and lang is English, add 128
+        elif (
+            # zhs lang is not released since blb
+            prefer_lang == "zhs"
+            and datetime.strptime(card["released_at"], "%Y-%m-%d") > datetime.strptime("2024-08-01", "%Y-%m-%d")
+            and card["lang"] == "en"
+        ):
+            points += 128
 
         return points
 
     scores = [score(card) for card in alternatives]
 
     if mode == "best":
-        if current is not None and scores[alternatives.index(current)] == np.max(scores):
+        if current is not None and current in alternatives and scores[alternatives.index(current)] == np.max(scores):
             return current  # No better recommendation
 
         # Return print with highest score

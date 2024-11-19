@@ -145,7 +145,9 @@ def print_cards_fpdf(
         left = border_crop if x > 0 else 0
         top = border_crop if y > 0 else 0
 
-        if left == 0 and top == 0:
+        if border_crop == 0:
+            cropped_image = image
+        elif left == 0 and top == 0:
             cropped_image = image
         else:
             path = Path(image)
