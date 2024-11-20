@@ -125,8 +125,18 @@ optional arguments:
                         which faces to print (default: all)
   --local_scan_path     path to local scan cache
   --lang                prefer this language
-  --cache_path          path to cache directory
+  --cache_path          path to cache directory instead of default tmpdir
 ```
+
+#### About local scans
+
+The `local_scan_path` option allows you to specify a local path to a directory containing the scans of all the cards in your decklist. This allows you to use the highest resolution scans available locally, without having to wait for the scans to be uploaded to Scryfall.
+
+local scan path examples:
+
+1. /path/to/scans/{set}/{card_name}.full.jpg
+2. /path/to/scans/{set}/{card_name}.{collector_number}.full.jpg
+3. /path/to/scans/TOK/{set}/{card_name}.full.jpg (for tokens)
 
 ### convert
 

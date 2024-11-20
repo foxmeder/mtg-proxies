@@ -47,7 +47,7 @@ def recommend_print(card, mode="best"):
 
 
 def card_img_path(card) -> list[str]:
-    if card["layout"] == "token":
+    if "layout" in card and card["layout"] == "token":
         return [f"TOK/*/{card["name"]}.*"]
     # format card name
     card_name = "-".join([s for s in re.split(r",|'|\s", card["name"].lower()) if s.strip()])
@@ -56,7 +56,10 @@ def card_img_path(card) -> list[str]:
         img_path = [
             f'{card["set"]}/*{card_name}.*',
             f'{card["set"]}/{card["name"]}.full.*',
+            f'{card["set"]}/{card["name"]}[1-9].full.*',
         ]
+        if "collector_number" in card:
+            img_path += [f'{card["set"]}/{card["name"]}.{card["collector_number"]}.full.*']
     return img_path + [
         f"*{card_name}.*",
         f'{card["name"]}.full.*',

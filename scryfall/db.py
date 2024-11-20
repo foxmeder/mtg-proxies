@@ -104,15 +104,25 @@ class ScryfallDb:
             cur.execute(sql, (kwargs["name"], lang))
             cards = cur.fetchall()
         else:
-            set = kwargs["set"].lower()
-            sql = "SELECT data FROM cards WHERE card_name=? AND card_set=? AND lang=? \
+            wheres = ""
+            params = []
+            for key, value in kwargs.items():
+                if not value:
+                    continue
+                if key == "set":
+                    wheres += " AND card_set=?"
+                    params.append(value.lower())
+                elif key == "collector_number":
+                    wheres += " AND collector_number=?"
+                    params.append(value)
+            sql = f"SELECT data FROM cards WHERE card_name=? {wheres} AND lang=? \
                   order by date(released_at) DESC"
-            cur.execute(sql, (kwargs["name"], set, lang))
+            cur.execute(sql, (kwargs["name"],) + tuple(params) + (lang,))
             cards = cur.fetchall()
             if lang != "en" and len(cards) == 0:
-                sql = "SELECT data FROM cards WHERE card_name=? AND card_set=? AND lang='en' \
+                sql = f"SELECT data FROM cards WHERE card_name=? {wheres} AND lang='en' \
                     order by date(released_at) DESC"
-                cur.execute(sql, (kwargs["name"], set))
+                cur.execute(sql, (kwargs["name"],) + tuple(params))
                 cards += cur.fetchall()
         if lang != "en" and len(cards) == 0:
             sql = "SELECT data FROM cards WHERE card_name=? AND lang='en' order by date(released_at) DESC"
