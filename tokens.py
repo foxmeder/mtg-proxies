@@ -36,7 +36,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "--format", help="output format (default: %(default)s)", choices=["arena", "text"], default="arena"
     )
+    parser.add_argument("--lang", type=str, help="prefer this language", default=None)
+    parser.add_argument("--cache_path", type=str, help="path to cache directory", default=None)
     args = parser.parse_args()
+
+    # Set cache path
+    if args.cache_path is not None:
+        print("Using cache path:", args.cache_path)
+        scryfall.set_cache_path(args.cache_path)
+
+    # Set preferred language
+    if args.lang is not None:
+        print("Preferring language:", args.lang)
+        scryfall.set_prefer_lang(args.lang)
 
     # Parse decklist
     decklist = parse_decklist_spec(args.decklist, warn_levels=["ERROR", "WARNING"])

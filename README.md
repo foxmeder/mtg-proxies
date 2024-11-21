@@ -89,7 +89,7 @@ Examples:
 ```bash
 python print.py examples/decklist.txt decklist_fronts.pdf --face front
 python print.py examples/decklist.txt decklist_backs.pdf --face back
-python print.py examples/decklist.txt decklist_zhs.pdf --local_scan_path '/mnt/nasz/magic_cn/cards,/mnt/nasz/forge_cn1/Forge/Cache/pics/cards' --border_crop 0 --cache_path './.cache' --lang zhs
+python print.py examples/decklist.txt decklist_zhs.pdf --local_scan_path '/mnt/nasz/magic_cn/cards,/mnt/nasz/forge_cn1/Forge/Cache/pics/cards' --border_crop 0 --cache_path './.cache' --lang zhs --card_space 5
 ```
 
 ## Updating
@@ -126,6 +126,7 @@ optional arguments:
   --local_scan_path     path to local scan cache
   --lang                prefer this language
   --cache_path          path to cache directory instead of default tmpdir
+  --card_space PIXELS   space between cards (default: 0)
 ```
 
 #### About local scans
@@ -176,6 +177,7 @@ Example:
 
 ```bash
 python tokens.py examples/token_generators.txt
+python tokens.py examples/red_blue.txt --cache_path './.cache' --lang zhs
 ```
 
 ### Deck Value Decomposition

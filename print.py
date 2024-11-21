@@ -65,6 +65,9 @@ if __name__ == "__main__":
     parser.add_argument("--local_scan_path", type=str, help="path to local scan cache", default=None)
     parser.add_argument("--lang", type=str, help="prefer this language", default=None)
     parser.add_argument("--cache_path", type=str, help="path to cache directory", default=None)
+    parser.add_argument(
+        "--card_space", help="space between cards (default: %(default)s)", type=int, default=0, metavar="PIXELS"
+    )
     args = parser.parse_args()
 
     # Set cache path
@@ -104,6 +107,7 @@ if __name__ == "__main__":
             border_crop=args.border_crop,
             background_color=background_color,
             cropmarks=args.cropmarks,
+            card_space=args.card_space,
         )
     else:
         print_cards_matplotlib(

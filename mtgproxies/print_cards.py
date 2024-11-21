@@ -13,8 +13,11 @@ from mtgproxies.plotting import SplitPages
 image_size = np.array([745, 1040])
 
 
-def _occupied_space(cardsize, pos, border_crop: int, closed: bool = False):
-    return cardsize * (pos * image_size - np.clip(2 * pos - 1 - closed, 0, None) * border_crop) / image_size
+def _occupied_space(cardsize, pos, border_crop: int, closed: bool = False, card_space: int = 0, dpi: int = 300):
+    # caculate occupied space as 300 dpi
+    return (
+        cardsize * (pos * image_size - np.clip(2 * pos - 1 - closed, 0, None) * (border_crop - card_space)) / image_size
+    )
 
 
 def print_cards_matplotlib(
@@ -26,6 +29,7 @@ def print_cards_matplotlib(
     interpolation: str | None = "lanczos",
     dpi: int = 600,
     background_color=None,
+    card_space: int = 0,
 ):
     """Print a list of cards to a pdf file.
 
@@ -40,7 +44,7 @@ def print_cards_matplotlib(
     N = np.floor(papersize / cardsize).astype(int)
     if N[0] == 0 or N[1] == 0:
         raise ValueError(f"Paper size too small: {papersize}")
-    offset = (papersize - _occupied_space(cardsize, N, border_crop, closed=True)) / 2
+    offset = (papersize - _occupied_space(cardsize, N, border_crop, closed=True, card_space=card_space)) / 2
 
     # Ensure directory exists
     filepath = Path(filepath)
@@ -71,10 +75,12 @@ def print_cards_matplotlib(
                         img = img[top:, left:]
 
                         # Compute extent
-                        lower = (offset + _occupied_space(cardsize, np.array([x, y]), border_crop)) / papersize
+                        lower = (
+                            offset + _occupied_space(cardsize, np.array([x, y]), border_crop, card_space=card_space)
+                        ) / papersize
                         upper = (
                             offset
-                            + _occupied_space(cardsize, np.array([x, y]), border_crop)
+                            + _occupied_space(cardsize, np.array([x, y]), border_crop, card_space=card_space)
                             + cardsize * (image_size - [left, top]) / image_size
                         ) / papersize
                         extent = [lower[0], upper[0], 1 - upper[1], 1 - lower[1]]  # flip y-axis
@@ -105,6 +111,7 @@ def print_cards_fpdf(
     border_crop: int = 14,
     background_color: tuple[int, int, int] = None,
     cropmarks: bool = True,
+    card_space: int = 0,
 ) -> None:
     """Print a list of cards to a pdf file.
 
@@ -122,7 +129,7 @@ def print_cards_fpdf(
     if N[0] == 0 or N[1] == 0:
         raise ValueError(f"Paper size too small: {papersize}")
     cards_per_sheet = np.prod(N)
-    offset = (papersize - _occupied_space(cardsize, N, border_crop, closed=True)) / 2
+    offset = (papersize - _occupied_space(cardsize, N, border_crop, closed=True, card_space=card_space)) / 2
 
     # Ensure directory exists
     filepath = Path(filepath)
@@ -157,7 +164,7 @@ def print_cards_fpdf(
                 plt.imsave(cropped_image, plt.imread(image)[top:, left:])
 
         # Compute extent
-        lower = offset + _occupied_space(cardsize, np.array([x, y]), border_crop)
+        lower = offset + _occupied_space(cardsize, np.array([x, y]), border_crop, card_space=card_space)
         size = cardsize * (image_size - [left, top]) / image_size
 
         # Plot image
@@ -167,7 +174,7 @@ def print_cards_fpdf(
             # If this was the last card on a page, add crop marks
             pdf.set_line_width(0.05)
             pdf.set_draw_color(255, 255, 255)
-            a = cardsize * (image_size - 2 * border_crop) / image_size
+            a = cardsize * (image_size - 2 * (border_crop - card_space)) / image_size
             b = papersize - N * a
             for x in range(N[0] + 1):
                 for y in range(N[1] + 1):
