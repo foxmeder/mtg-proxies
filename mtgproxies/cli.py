@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from localfile import parse_local_dir
 from mtgproxies.decklists import archidekt, manastack, parse_decklist
 from mtgproxies.decklists.decklist import Decklist
 
@@ -12,7 +13,9 @@ def parse_decklist_spec(decklist_spec: str, warn_levels=("ERROR", "WARNING", "CO
         warn_levels: Levels of warnings to show
     """
     print("Parsing decklist ...")
-    if Path(decklist_spec).is_file():  # Decklist is file
+    if Path(decklist_spec).is_dir():  # Decklist is directory
+        decklist, ok, warnings = parse_local_dir(decklist_spec)
+    elif Path(decklist_spec).is_file():  # Decklist is file
         decklist, ok, warnings = parse_decklist(decklist_spec)
     elif decklist_spec.lower().startswith("manastack:") and decklist_spec.split(":")[-1].isdigit():
         # Decklist on Manastack

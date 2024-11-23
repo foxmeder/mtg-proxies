@@ -6,6 +6,8 @@ import re
 
 from pathlib import Path
 
+from mtgproxies.decklists import Card, Decklist
+
 local_scan_path = None
 
 
@@ -14,7 +16,7 @@ def set_local_scan_path(path: str):
     local_scan_path = path.split(",")
 
 
-def recommend_print(card, mode="best"):
+def recommend_print(card: Card, mode="best"):
     global local_scan_path
     if local_scan_path is None:
         return card
@@ -39,10 +41,7 @@ def recommend_print(card, mode="best"):
 
     print(f'Found {len(images)} local scan for {card["name"]}')
     print(f"Using {images[0]} for {card['name']}")
-    if "image_uris" in card:
-        card["image_uris"]["png"] = str(images[0])
-    else:
-        card["image_uris"] = {"png": str(images[0])}
+    card.proxy_local_scan = images[0]
     return card
 
 
@@ -50,17 +49,36 @@ def card_img_path(card) -> list[str]:
     if "layout" in card and card["layout"] == "token":
         return [f"TOK/*/{card["name"]}.*"]
     # format card name
-    card_name = "-".join([s for s in re.split(r",|'|\s", card["name"].lower()) if s.strip()])
+    card_name = "-".join([s for s in re.split(r",|'|\s|/", card["name"].lower()) if s.strip()])
     img_path = []
     if card["set"]:
-        img_path = [
-            f'{card["set"]}/*{card_name}.*',
+        if "collector_number" in card:
+            img_path += [f'{card["set"]}/{card["name"]}.{card["collector_number"]}.full.*']
+        img_path += [
+            f'{card["set"]}/*-{card_name}.*',
+            f'{card["set"]}/*-{card["name"]}.*',
             f'{card["set"]}/{card["name"]}.full.*',
             f'{card["set"]}/{card["name"]}[1-9].full.*',
         ]
-        if "collector_number" in card:
-            img_path += [f'{card["set"]}/{card["name"]}.{card["collector_number"]}.full.*']
     return img_path + [
         f"*{card_name}.*",
         f'{card["name"]}.full.*',
     ]
+
+
+def parse_local_dir(p: str | Path) -> tuple[Decklist, bool, list]:
+    # list all images in p recursively
+    print(f"Parsing local dir: {p}")
+    p = Path(p)
+    return (
+        Decklist(
+            [
+                Card(1, card={"name": file.stem}, proxy_local_scan=file)
+                for file in list(p.rglob("*.jpg")) + list(p.rglob("*.png"))
+                if file.is_file()
+            ],
+            p.stem,
+        ),
+        True,
+        [],
+    )

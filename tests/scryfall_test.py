@@ -54,9 +54,11 @@ def test_canonic_card_name(name: str, expected_id: str):
     ],
 )
 def test_get_cards_lang(name, set, collector_number, lang: str, expected):
+    from pathlib import Path
+
     import scryfall
 
-    scryfall.set_cache_path("./.cache")
+    scryfall.set_cache_path(Path(__file__).parent.parent / ".cache")
     scryfall.set_prefer_lang(lang)
     cards = scryfall.get_cards(name=name, set=set, collector_number=collector_number)
     assert cards[0]["lang"] == expected["lang"]

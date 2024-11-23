@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 
@@ -53,14 +55,31 @@ import pytest
             },
             True,
         ),
+        (
+            {
+                "name": "Zimone, Paradox Sculptor",
+                "set": "fdn",
+            },
+            True,
+        ),
     ],
 )
 def test_recommend_print(card, expected):
     import localfile
+    from mtgproxies.decklists import Card
 
     localfile.set_local_scan_path("/mnt/nasz/magic_cn/cards,/mnt/nasz/forge_cn1/Forge/Cache/pics/cards")
-
+    card = Card(1, card)
     card = localfile.recommend_print(card)
     if expected:
-        assert "image_uris" in card
-        assert not card["image_uris"]["png"].startswith("http")
+        assert card.proxy_local_scan
+
+
+def test_parse_local_dir():
+    import localfile
+
+    dl, ok, warnings = localfile.parse_local_dir(Path(__file__).parent.parent / "examples")
+    assert dl.name == "examples"
+    assert len(dl.cards) == 4
+    assert ok
+    assert len(warnings) == 0

@@ -20,6 +20,7 @@ class Card:
 
     count: int
     card: dict[str | Any]
+    proxy_local_scan: str | None = None
 
     def __getitem__(self, key: str) -> Any:
         return self.card[key]
@@ -33,6 +34,8 @@ class Card:
 
         For single faced cards, this is just the front.
         """
+        if self.proxy_local_scan:
+            return [{"png": str(self.proxy_local_scan)}]
         return [face["image_uris"] for face in scryfall.get_faces(self.card)]
 
     def __format__(self, format_spec: str) -> str:

@@ -90,6 +90,7 @@ Examples:
 python print.py examples/decklist.txt decklist_fronts.pdf --face front
 python print.py examples/decklist.txt decklist_backs.pdf --face back
 python print.py examples/decklist.txt decklist_zhs.pdf --local_scan_path '/mnt/nasz/magic_cn/cards,/mnt/nasz/forge_cn1/Forge/Cache/pics/cards' --border_crop 0 --cache_path './.cache' --lang zhs --card_space 5
+python print.py examples/who decklist_who.pdf --border_crop 0 --card_space 5
 ```
 
 ## Updating
