@@ -20,50 +20,69 @@ def recommend_print(card: Card, mode="best"):
     global local_scan_path
     if local_scan_path is None:
         return card
+    found = recommend_local_scan(card, mode)
+    if not found:
+        return card
+    # Sort by mtime and take the newest one
+    # images.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+    # largest_image = max(images, key=lambda x: x.stat().st_size)
 
+    print(f"Using local scan {found} for {card['name']}")
+    card.proxy_local_scan = found
+    return card
+
+
+def recommend_local_scan(card: Card, mode="best") -> Path | None:
+    global local_scan_path
     image_extensions = [".jpg", ".jpeg", ".png"]
 
     # find all image files whose filename contains card_name in local_scan_path
     img_paths = card_img_path(card)
-    founds = [
-        file
-        for path in [Path(p) for p in local_scan_path]
-        for card_path in img_paths
-        for file in path.glob(card_path, case_sensitive=False)
-    ]
+    local_paths = [Path(p) for p in local_scan_path]
 
-    images = [file for file in founds if file.suffix in image_extensions]
-    if len(images) == 0:
-        return card
-    # Sort by mtime and take the newest one
-    images.sort(key=lambda x: x.stat().st_mtime, reverse=True)
-    # largest_image = max(images, key=lambda x: x.stat().st_size)
-
-    print(f'Found {len(images)} local scan for {card["name"]}')
-    print(f"Using {images[0]} for {card['name']}")
-    card.proxy_local_scan = images[0]
-    return card
+    for p in local_paths:
+        for card_path in img_paths:
+            for file in p.glob(card_path, case_sensitive=False):
+                if file.suffix.lower() in image_extensions:
+                    return file
+    return None
 
 
 def card_img_path(card) -> list[str]:
-    if "layout" in card and card["layout"] == "token":
-        return [f"TOK/*/{card["name"]}.*"]
     # format card name
-    card_name = "-".join([s for s in re.split(r",|'|\s|/", card["name"].lower()) if s.strip()])
+    card_name = local_card_name(card["name"])
+    other_card_name = card["name"].replace("æ", "ae").replace("í", "i").replace("á", "a").replace("û", "u")
     img_path = []
     if card["set"]:
         if "collector_number" in card:
-            img_path += [f'{card["set"]}/{card["name"]}.{card["collector_number"]}.full.*']
+            img_path += [
+                f'{card["set"]}/{card["name"]}.{card["collector_number"]}.*',
+                f'{card["set"]}/{other_card_name}.{card["collector_number"]}.*',
+                f'{card["set"]}/*{card["set"]}-{card["collector_number"]}-{card["name"]}.*',
+                f'{card["set"]}/*{card["set"]}-{card["collector_number"]}-{other_card_name}.*',
+                f'{card["set"]}/*{card["set"]}-{card["collector_number"]}-{card_name}.*',
+            ]
         img_path += [
+            f'{card["set"]}/{card["name"]}.full.*',
+            f'{card["set"]}/{other_card_name}.full.*',
+            f'{card["set"]}/{card["name"]}[1-9].full.*',
+            f'{card["set"]}/{other_card_name}[1-9].full.*',
             f'{card["set"]}/*-{card_name}.*',
             f'{card["set"]}/*-{card["name"]}.*',
-            f'{card["set"]}/{card["name"]}.full.*',
-            f'{card["set"]}/{card["name"]}[1-9].full.*',
+            f'{card["set"]}/*-{other_card_name}.*',
         ]
+    if "layout" in card and card["layout"] == "token":
+        img_path += [f"TOK/{card["set"]}/{card["name"]}.*"]
     return img_path + [
-        f"*{card_name}.*",
-        f'{card["name"]}.full.*',
+        f"{card_name}.*",
+        f'{card["name"]}.*',
+        f"{other_card_name}.*",
     ]
+
+
+def local_card_name(card_name: str) -> str:
+    card_name = card_name.replace("æ", "ae").replace("í", "i").replace("á", "a").replace("û", "u")
+    return "-".join([s for s in re.split(r",|'|\s|:|\.|/", card_name.lower()) if s.strip()])
 
 
 def parse_local_dir(p: str | Path) -> tuple[Decklist, bool, list]:
@@ -74,7 +93,7 @@ def parse_local_dir(p: str | Path) -> tuple[Decklist, bool, list]:
         Decklist(
             [
                 Card(1, card={"name": file.stem}, proxy_local_scan=file)
-                for file in list(p.rglob("*.jpg")) + list(p.rglob("*.png"))
+                for file in list(p.rglob("*.jpg", case_sensitive=False)) + list(p.rglob("*.png", case_sensitive=False))
                 if file.is_file()
             ],
             p.stem,

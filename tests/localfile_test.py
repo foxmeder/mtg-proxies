@@ -62,6 +62,30 @@ import pytest
             },
             True,
         ),
+        (
+            {
+                "name": "Gríma, Saruman's Footman",
+                "set": "LTC",
+                "collector_number": "57",
+            },
+            True,
+        ),
+        (
+            {
+                "name": "Grishnákh, Brash Instigator",
+                "set": "LTR",
+                "collector_number": "134",
+            },
+            True,
+        ),
+        (
+            {
+                "name": "Lord of the Nazgûl",
+                "set": "LTC",
+                "collector_number": "60",
+            },
+            True,
+        ),
     ],
 )
 def test_recommend_print(card, expected):

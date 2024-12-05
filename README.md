@@ -89,8 +89,8 @@ Examples:
 ```bash
 python print.py examples/decklist.txt decklist_fronts.pdf --face front
 python print.py examples/decklist.txt decklist_backs.pdf --face back
-python print.py examples/decklist.txt decklist_zhs.pdf --local_scan_path '/mnt/nasz/magic_cn/cards,/mnt/nasz/forge_cn1/Forge/Cache/pics/cards' --border_crop 0 --cache_path './.cache' --lang zhs --card_space 5
-python print.py examples/who decklist_who.pdf --border_crop 0 --card_space 5
+python print.py examples/decklist.txt decklist_zhs.pdf --local_scan_path '/mnt/nasz/magic_cn/cards,/mnt/nasz/forge_cn1/Forge/Cache/pics/cards' --border_crop 0 --cache_path './.cache' --lang zhs --card_space -10
+python print.py examples/who decklist_who.pdf --border_crop 0 --card_space -6
 ```
 
 ## Updating
@@ -179,6 +179,33 @@ Example:
 ```bash
 python tokens.py examples/token_generators.txt
 python tokens.py examples/red_blue.txt --cache_path './.cache' --lang zhs
+```
+
+### make all cards db
+
+```txt
+usage: mkdb.py [-h] [--cache_path CACHE_PATH] [--local_scan_path LOCAL_SCAN_PATH] [--all_cards ALL_CARDS] {scryfall,local_scan}
+
+initialize sqlite3 db for printing.
+
+positional arguments:
+  {scryfall,local_scan}
+                        db type (default: scryfall)
+
+options:
+  -h, --help            show this help message and exit
+  --cache_path CACHE_PATH
+                        path to cache directory
+  --local_scan_path LOCAL_SCAN_PATH
+                        path to local scan directory
+  --all_cards ALL_CARDS
+                        path to all_cards.json
+```
+
+Example:
+
+```bash
+python mkdb.py scryfall --cache_path './.cache' --all_cards './.cache/all-cards.json'
 ```
 
 ### Deck Value Decomposition
