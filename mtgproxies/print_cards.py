@@ -175,7 +175,7 @@ def print_cards_fpdf(
             pdf.set_line_width(0.05)
             pdf.set_draw_color(255, 255, 255)
             a = cardsize * (image_size - 2 * (border_crop - card_space)) / image_size
-            b = papersize - N * a
+            b = papersize - N * a + (border_crop - card_space) * 25.4 / 300
             for x in range(N[0] + 1):
                 for y in range(N[1] + 1):
                     mark = b / 2 + a * [x, y]

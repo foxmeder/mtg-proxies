@@ -63,24 +63,20 @@ def card_img_path(card) -> list[str]:
                 f'{card["set"]}/*{card["set"]}-{card["collector_number"]}-{card_name}.*',
             ]
         img_path += [
-            f'{card["set"]}/{card["name"]}.full.*',
-            f'{card["set"]}/{other_card_name}.full.*',
-            f'{card["set"]}/{card["name"]}[1-9].full.*',
-            f'{card["set"]}/{other_card_name}[1-9].full.*',
+            f'{card["set"]}/{card["name"]}.*',
+            f'{card["set"]}/{other_card_name}.*',
+            # f'{card["set"]}/{card_name}.*',
             f'{card["set"]}/*-{card_name}.*',
             f'{card["set"]}/*-{card["name"]}.*',
             f'{card["set"]}/*-{other_card_name}.*',
         ]
     if "layout" in card and card["layout"] == "token":
         img_path += [f"TOK/{card["set"]}/{card["name"]}.*"]
-    return img_path + [
-        f"{card_name}.*",
-        f'{card["name"]}.*',
-        f"{other_card_name}.*",
-    ]
+    return img_path
 
 
 def local_card_name(card_name: str) -> str:
+    card_name = card_name.split("//")[0].strip()
     card_name = card_name.replace("æ", "ae").replace("í", "i").replace("á", "a").replace("û", "u")
     return "-".join([s for s in re.split(r",|'|\s|:|\.|/", card_name.lower()) if s.strip()])
 
