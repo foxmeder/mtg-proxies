@@ -56,14 +56,14 @@ def card_img_path(card) -> list[str]:
     if card["set"]:
         if "collector_number" in card:
             img_path += [
-                f'{card["set"]}/{card["name"]}.{card["collector_number"]}.*',
-                f'{card["set"]}/{other_card_name}.{card["collector_number"]}.*',
-                f'{card["set"]}/*{card["set"]}-{card["collector_number"]}-{card["name"]}.*',
-                f'{card["set"]}/*{card["set"]}-{card["collector_number"]}-{other_card_name}.*',
-                f'{card["set"]}/*{card["set"]}-{card["collector_number"]}-{card_name}.*',
+                f'{card["set"]}/{card["set"]}_{card["collector_number"]}.*',  # sbwsz
+                f'{card["set"]}/*{card["set"]}-{card["collector_number"]}-*.*',  # cards
+                f'{card["set"]}/{card["set"]}-{card["collector_number"]}.*',  # cards
+                f'{card["set"]}/{card["name"]}.{card["collector_number"]}.*',  # forge_cn
+                f'{card["set"]}/{other_card_name}.{card["collector_number"]}.*',  # forge_cn
             ]
         img_path += [
-            f'{card["set"]}/{card["name"]}.*',
+            f'{card["set"]}/{card["name"]}.*',  # forge_cn
             f'{card["set"]}/{other_card_name}.*',
             # f'{card["set"]}/{card_name}.*',
             f'{card["set"]}/*-{card_name}.*',
@@ -71,14 +71,19 @@ def card_img_path(card) -> list[str]:
             f'{card["set"]}/*-{other_card_name}.*',
         ]
     if "layout" in card and card["layout"] == "token":
-        img_path += [f"TOK/{card["set"]}/{card["name"]}.*"]
+        # strip the first T from set name
+        set_id = card["set"][1:]
+        img_path += [
+            f"TOK/{card["set"]}/{card["name"]}.*",
+            f"TOK/{set_id}/{card["name"]}.*",
+        ]
     return img_path
 
 
 def local_card_name(card_name: str) -> str:
     card_name = card_name.split("//")[0].strip()
     card_name = card_name.replace("æ", "ae").replace("í", "i").replace("á", "a").replace("û", "u")
-    return "-".join([s for s in re.split(r",|'|\s|:|\.|/", card_name.lower()) if s.strip()])
+    return "-".join([s for s in re.split(r",|'|\s|:|\.|&|/", card_name.lower()) if s.strip()])
 
 
 def parse_local_dir(p: str | Path) -> tuple[Decklist, bool, list]:

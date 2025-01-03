@@ -51,15 +51,45 @@ def test_canonic_card_name(name: str, expected_id: str):
             "zhs",
             {"lang": "zhs", "id": "05480a5a-3f2c-4420-9f8b-718efa532fa7"},
         ),
+        ("Boros Signet", "", "", "zhs", {"lang": "zhs", "id": "d6f7f444-7101-472f-bc07-91d2c6bb72ec"}),
     ],
 )
 def test_get_cards_lang(name, set, collector_number, lang: str, expected):
     from pathlib import Path
 
+    import sbwsz
     import scryfall
 
     scryfall.set_cache_path(Path(__file__).parent.parent / ".cache")
     scryfall.set_prefer_lang(lang)
+    sbwsz.set_cache_path(Path(__file__).parent.parent / ".cache")
     cards = scryfall.get_cards(name=name, set=set, collector_number=collector_number)
+    assert cards[0]["lang"] == expected["lang"]
+    assert cards[0]["id"] == expected["id"]
+
+
+@pytest.mark.parametrize(
+    "name,lang,expected",
+    [
+        ("Korvold, Fae-Cursed King", "zhs", {"lang": "zhs", "id": "9eb6ec66-d467-458f-a5b8-0c7aa426ee52"}),
+        ("Brave-Kin Duo", "zhs", {"lang": "en", "id": "b8dd4693-424d-4d6e-86cf-24401a23d6b1"}),
+        (
+            "Liliana, Dreadhorde General",
+            "zhs",
+            {"lang": "zhs", "id": "05480a5a-3f2c-4420-9f8b-718efa532fa7"},
+        ),
+        ("Boros Signet", "zhs", {"lang": "zhs", "id": "d6f7f444-7101-472f-bc07-91d2c6bb72ec"}),
+    ],
+)
+def test_recommend_print(name, lang: str, expected):
+    from pathlib import Path
+
+    import sbwsz
+    import scryfall
+
+    scryfall.set_cache_path(Path(__file__).parent.parent / ".cache")
+    scryfall.set_prefer_lang(lang)
+    sbwsz.set_cache_path(Path(__file__).parent.parent / ".cache")
+    cards = scryfall.recommend_print(card_name=name)
     assert cards[0]["lang"] == expected["lang"]
     assert cards[0]["id"] == expected["id"]

@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 
+import sbwsz
 import scryfall
 from mtgproxies.cli import parse_decklist_spec
 from mtgproxies.decklists import Decklist
@@ -44,6 +45,7 @@ if __name__ == "__main__":
     if args.cache_path is not None:
         print("Using cache path:", args.cache_path)
         scryfall.set_cache_path(args.cache_path)
+        sbwsz.set_cache_path(args.cache_path)
 
     # Set preferred language
     if args.lang is not None:

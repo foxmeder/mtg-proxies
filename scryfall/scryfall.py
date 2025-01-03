@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import threading
 from collections import defaultdict
-from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
 from tempfile import gettempdir
@@ -18,6 +17,7 @@ import numpy as np
 import requests
 from tqdm import tqdm
 
+import sbwsz
 from scryfall.db import ScryfallDb
 from scryfall.rate_limit import RateLimiter
 
@@ -273,13 +273,15 @@ def recommend_print(current=None, card_name: str | None = None, oracle_id: str |
         if card["lang"] == prefer_lang:
             points += 64
         # check release date for zhs, if it is after 2024-08-01 and lang is English, add 128
-        elif (
+        elif prefer_lang == "zhs":
             # zhs lang is not released since blb
-            prefer_lang == "zhs"
-            and datetime.strptime(card["released_at"], "%Y-%m-%d") > datetime.strptime("2024-08-01", "%Y-%m-%d")
-            and card["lang"] == "en"
-        ):
-            points += 128
+            zhs_prefer_card = sbwsz.recommend_print(card_name=card["name"])
+            if (
+                zhs_prefer_card is not None
+                and card["set"] == zhs_prefer_card["card_set"].lower()
+                and card["collector_number"] == zhs_prefer_card["collector_number"]
+            ):
+                points += 128
 
         return points
 
