@@ -7,6 +7,7 @@ See:
 from __future__ import annotations
 
 import json
+import pickle
 import threading
 from collections import defaultdict
 from functools import lru_cache
@@ -157,9 +158,17 @@ def _get_database(database_name: str = "default_cards"):
     if len(bulk_data) != 1:
         raise ValueError(f"Unknown database {database_name}")
 
-    bulk_file = get_file(bulk_data[0]["download_uri"].split("/")[-1], bulk_data[0]["download_uri"])
-    with open(bulk_file, encoding="utf-8") as json_file:
-        return json.load(json_file)
+    bulk_file = Path(get_file(bulk_data[0]["download_uri"].split("/")[-1], bulk_data[0]["download_uri"]))
+    pickle_file = bulk_file.with_suffix(".pickle")
+    if not pickle_file.is_file():  # Convert json to pickle
+        with open(bulk_file, encoding="utf-8") as json_file:
+            data = json.load(json_file)
+        with open(pickle_file, "wb") as pickle_file:
+            pickle.dump(data, pickle_file, protocol=pickle.HIGHEST_PROTOCOL)
+        return data
+    else:
+        with open(pickle_file, "rb") as f:
+            return pickle.load(f)
 
 
 def canonic_card_name(card_name: str) -> str:
@@ -306,12 +315,10 @@ def recommend_print(current=None, card_name: str | None = None, oracle_id: str |
         # Return all card in descending order
         return recommendations
     elif mode == "choices":
-        artworks = np.array(
-            [
-                get_faces(card)[0]["illustration_id"] if "illustration_id" in get_faces(card)[0] else card["id"]
-                for card in alternatives
-            ]  # Not all cards have illustrations, use id instead
-        )
+        artworks = np.array([
+            get_faces(card)[0]["illustration_id"] if "illustration_id" in get_faces(card)[0] else card["id"]
+            for card in alternatives
+        ])  # Not all cards have illustrations, use id instead
         choices = []
         for artwork in set(artworks):
             artwork_alternatives = np.array(alternatives)[artworks == artwork]
