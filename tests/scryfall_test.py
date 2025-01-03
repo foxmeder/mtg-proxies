@@ -76,7 +76,7 @@ def test_get_cards_lang(name, set, collector_number, lang: str, expected):
         (
             "Liliana, Dreadhorde General",
             "zhs",
-            {"lang": "zhs", "id": "05480a5a-3f2c-4420-9f8b-718efa532fa7"},
+            {"lang": "en", "id": "ba461127-2220-4274-81cb-423a1700c9eb"},
         ),
         ("Boros Signet", "zhs", {"lang": "zhs", "id": "d6f7f444-7101-472f-bc07-91d2c6bb72ec"}),
     ],
@@ -91,5 +91,5 @@ def test_recommend_print(name, lang: str, expected):
     scryfall.set_prefer_lang(lang)
     sbwsz.set_cache_path(Path(__file__).parent.parent / ".cache")
     cards = scryfall.recommend_print(card_name=name)
-    assert cards[0]["lang"] == expected["lang"]
-    assert cards[0]["id"] == expected["id"]
+    assert cards["lang"] == expected["lang"]
+    assert cards["id"] == expected["id"]

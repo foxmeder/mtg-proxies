@@ -282,7 +282,7 @@ def recommend_print(current=None, card_name: str | None = None, oracle_id: str |
         if card["lang"] == prefer_lang:
             points += 64
         # check release date for zhs, if it is after 2024-08-01 and lang is English, add 128
-        elif prefer_lang == "zhs":
+        elif prefer_lang == "zhs" and card["set"] in sbwsz.unoficial_zhs_set():
             # zhs lang is not released since blb
             zhs_prefer_card = sbwsz.recommend_print(card_name=card["name"])
             if (
@@ -315,10 +315,12 @@ def recommend_print(current=None, card_name: str | None = None, oracle_id: str |
         # Return all card in descending order
         return recommendations
     elif mode == "choices":
-        artworks = np.array([
-            get_faces(card)[0]["illustration_id"] if "illustration_id" in get_faces(card)[0] else card["id"]
-            for card in alternatives
-        ])  # Not all cards have illustrations, use id instead
+        artworks = np.array(
+            [
+                get_faces(card)[0]["illustration_id"] if "illustration_id" in get_faces(card)[0] else card["id"]
+                for card in alternatives
+            ]
+        )  # Not all cards have illustrations, use id instead
         choices = []
         for artwork in set(artworks):
             artwork_alternatives = np.array(alternatives)[artworks == artwork]

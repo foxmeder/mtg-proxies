@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 from tempfile import gettempdir
 
@@ -14,10 +15,12 @@ _cache = {}
 
 # unofficial translations
 unofficial_translations = {
-    "fdn": [(1, 271), (357, 361)],
+    "fdn": [(1, 175), (177, 271), (357, 361)],
+    "fdc": [],
     "blb": [],
     "dsc": [(1, 94)],
     "dsk": [],
+    "ltc": [],
 }
 
 
@@ -55,6 +58,12 @@ def unoffical_exists(card: dict) -> bool:
         # MTGso translations are not official
         return False
     return True
+
+
+@lru_cache(maxsize=None)
+def unoficial_zhs_set():
+    global unofficial_translations
+    return unofficial_translations.keys()
 
 
 def recommend_print(current=None, card_name: str | None = None, oracle_id: str | None = None, mode="best"):
